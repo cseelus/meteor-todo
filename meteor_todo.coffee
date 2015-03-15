@@ -12,6 +12,8 @@ if Meteor.isClient
         Tasks.find {}, sort: createdAt: -1
     hideCompleted: ->
       Session.get 'hideCompleted'
+    incompleteCount: ->
+      Tasks.find { checked: $ne: true }.count()
 
   Template.body.events
     'submit .new-task': (event) ->
