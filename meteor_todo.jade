@@ -1,0 +1,21 @@
+head
+  title Todo List
+
+body
+  div.container
+    header
+      h1 Todo List
+
+      // Adds a form below the h1
+      form.new-task
+        input(type="text" name="text" placeholder="Type to add new tasks")
+
+    ul
+      each tasks
+        +task
+
+template(name="task")
+  li(class="{{#if checked}}checked{{/if}}")
+    button.delete &times;
+    input(type="checkbox" checked=checked class="toggle-checked")
+    span.text= text
