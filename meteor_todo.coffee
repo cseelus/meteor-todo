@@ -4,7 +4,14 @@ Tasks = new (Mongo.Collection)('tasks')
 if Meteor.isClient
   Template.body.helpers
     tasks: ->
-      Tasks.find {}, { sort: (createdAt: -1) }
+      if Session.get("hideCompleted")
+        # If hide completed is checked, filter tasks
+        Tasks.find { checked: $ne: true }, sort: createdAt: -1
+      else
+        # Otherwise, return all of the tasks
+        Tasks.find {}, sort: createdAt: -1
+    hideCompleted: ->
+      Session.get 'hideCompleted'
 
   Template.body.events
     'submit .new-task': (event) ->
@@ -16,6 +23,8 @@ if Meteor.isClient
         createdAt: new Date # Current time
       event.target.text.value = '' # Clear form
       false # Prevent default form submit actions, as we already handle it
+    'change .hide-completed input': (event) ->
+      Session.set("hideCompleted", event.target.checked)
   Template.task.events
     'click .toggle-checked': ->
       # Set the clicked property to the opposite of its current value
