@@ -13,7 +13,7 @@ if Meteor.isClient
     hideCompleted: ->
       Session.get 'hideCompleted'
     incompleteCount: ->
-      Tasks.find { checked: $ne: true }.count()
+      Tasks.find(checked: $ne: true).count()
 
   Template.body.events
     'submit .new-task': (event) ->
@@ -22,7 +22,9 @@ if Meteor.isClient
       text = event.target.text.value
       Tasks.insert
         text: text
-        createdAt: new Date # Current time
+        createdAt: new Date() # current time
+        owner: Meteor.userId() # _id of logged in user
+        username: Meteor.user().username # username of logged in user
       event.target.text.value = '' # Clear form
       false # Prevent default form submit actions, as we already handle it
     'change .hide-completed input': (event) ->
@@ -35,6 +37,8 @@ if Meteor.isClient
     'click .delete': ->
       Tasks.remove(this._id)
       return
+  Accounts.ui.config
+    passwordSignupFields: "USERNAME_ONLY"
 
 
 if Meteor.isServer
