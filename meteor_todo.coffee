@@ -21,11 +21,16 @@ if Meteor.isClient
       console.log(event)
       # This function is called when the new task form is submitted
       text = event.target.text.value
-      Meteor.cal("addTask", text)
+      Meteor.call("addTask", text)
       event.target.text.value = '' # Clear form
       false # Prevent default form submit actions, as we already handle it
     'change .hide-completed input': (event) ->
       Session.set("hideCompleted", event.target.checked)
+
+  Template.task.helpers
+    isOwner: ->
+      this.owner is Meteor.userId()
+
   Template.task.events
     'click .toggle-checked': ->
       # Set the clicked property to the opposite of its current value
@@ -34,14 +39,20 @@ if Meteor.isClient
     'click .delete': ->
       Meteor.call("deleteTask", this._id)
       return
+    'click .toggle-private': ->
+      Meteor.call("setPrivate", this._id, !this.private)
+
   Accounts.ui.config
     passwordSignupFields: "USERNAME_ONLY"
 
 
 if Meteor.isServer
-  Meteor.publish "tasks", ->
-    Tasks.find()
-
+  # Only publish tasks that are public or belong to the current user
+  Meteor.publish 'tasks', ->
+    Tasks.find $or: [
+      { private: $ne: true }
+      { owner: this.userId }
+    ]
 
 Meteor.methods
   addTask: (text) ->
@@ -52,11 +63,24 @@ Meteor.methods
       createdAt: new Date()
       owner: Meteor.userId()
       username: Meteor.user().username
-
   deleteTask: (taskId) ->
+    task = Tasks.findOne(taskId)
+    if task.private and task.owner != Meteor.userId()
+      # If the task is private, make sure only the owner can delete it
+      throw new (Meteor.Error)('not-authorized')
     Tasks.remove taskId
-
   setChecked: (taskId, setChecked) ->
+    task = Tasks.findOne(taskId)
+    if task.private and task.owner != Meteor.userId()
+      # If the task is private, make sure only the owner can check it off
+      throw new (Meteor.Error)('not-authorized')
     Tasks.update taskId,
       $set:
         checked: setChecked
+  setPrivate: (taskId, setToPrivate) ->
+    task = Tasks.findOne(taskId)
+    # Make sure only the task owner can make a task private
+    throw new Meteor.Error("not-authorized")  if task.owner isnt Meteor.userId()
+    Tasks.update taskId,
+      $set:
+        private: setToPrivate
