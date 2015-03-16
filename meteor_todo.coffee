@@ -20,11 +20,7 @@ if Meteor.isClient
       console.log(event)
       # This function is called when the new task form is submitted
       text = event.target.text.value
-      Tasks.insert
-        text: text
-        createdAt: new Date() # current time
-        owner: Meteor.userId() # _id of logged in user
-        username: Meteor.user().username # username of logged in user
+      Meteor.cal("addTask", text)
       event.target.text.value = '' # Clear form
       false # Prevent default form submit actions, as we already handle it
     'change .hide-completed input': (event) ->
@@ -32,10 +28,10 @@ if Meteor.isClient
   Template.task.events
     'click .toggle-checked': ->
       # Set the clicked property to the opposite of its current value
-      Tasks.update(this._id, $set: checked: !this.checked)
+      Meteor.call("setChecked", this._id, !this.checked)
       return
     'click .delete': ->
-      Tasks.remove(this._id)
+      Meteor.call("deleteTask", this._id)
       return
   Accounts.ui.config
     passwordSignupFields: "USERNAME_ONLY"
@@ -44,3 +40,21 @@ if Meteor.isClient
 if Meteor.isServer
   Meteor.startup ->
     # code to run on server at startup
+
+Meteor.methods
+  addTask: (text) ->
+    # Make sure the user is logged in before inserting a task
+    throw new Meteor.Error("not-authorized")  unless Meteor.userId()
+    Tasks.insert
+      text: text
+      createdAt: new Date()
+      owner: Meteor.userId()
+      username: Meteor.user().username
+
+  deleteTask: (taskId) ->
+    Tasks.remove taskId
+
+  setChecked: (taskId, setChecked) ->
+    Tasks.update taskId,
+      $set:
+        checked: setChecked

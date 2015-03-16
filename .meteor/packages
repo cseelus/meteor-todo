@@ -8,6 +8,5 @@ meteor-platform
 autopublish
 coffeescript
 mquandalle:jade
-insecure
 accounts-ui
 accounts-password
