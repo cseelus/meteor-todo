@@ -2,6 +2,7 @@ Tasks = new (Mongo.Collection)('tasks')
 
 
 if Meteor.isClient
+  Meteor.subscribe "tasks"
   Template.body.helpers
     tasks: ->
       if Session.get("hideCompleted")
@@ -38,8 +39,9 @@ if Meteor.isClient
 
 
 if Meteor.isServer
-  Meteor.startup ->
-    # code to run on server at startup
+  Meteor.publish "tasks", ->
+    Tasks.find()
+
 
 Meteor.methods
   addTask: (text) ->
