@@ -54,6 +54,7 @@ if Meteor.isServer
       { owner: this.userId }
     ]
 
+
 Meteor.methods
   addTask: (text) ->
     # Make sure the user is logged in before inserting a task
