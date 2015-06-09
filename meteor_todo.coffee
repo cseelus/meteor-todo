@@ -29,18 +29,18 @@ if Meteor.isClient
 
   Template.task.helpers
     isOwner: ->
-      this.owner is Meteor.userId()
+      @owner is Meteor.userId()
 
   Template.task.events
     'click .toggle-checked': ->
       # Set the clicked property to the opposite of its current value
-      Meteor.call("setChecked", this._id, !this.checked)
+      Meteor.call("setChecked", @_id, !@checked)
       return
     'click .delete': ->
-      Meteor.call("deleteTask", this._id)
+      Meteor.call("deleteTask", @_id)
       return
     'click .toggle-private': ->
-      Meteor.call("setPrivate", this._id, !this.private)
+      Meteor.call("setPrivate", @_id, !@private)
 
   Accounts.ui.config
     passwordSignupFields: "USERNAME_ONLY"
@@ -51,7 +51,7 @@ if Meteor.isServer
   Meteor.publish 'tasks', ->
     Tasks.find $or: [
       { private: $ne: true }
-      { owner: this.userId }
+      { owner: @userId }
     ]
 
 
